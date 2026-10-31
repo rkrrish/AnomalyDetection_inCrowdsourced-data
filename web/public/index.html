@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crowdsourced Data Validation & Anomaly Detection System</title>
+  <meta name="description" content="AI-Powered validation, CatBoost anomaly detection, and trust scoring system for crowdsourced compensation data.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">LevelsValidator AI</h1>
+          <span class="brand-subtitle">Crowdsourced Data Quality & CatBoost Anomaly Detection</span>
+        </div>
+      </div>
+
+      <nav class="nav-portal-switch">
+        <button id="nav-user-tab" class="nav-tab active" onclick="switchPortal('user')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          User Portal
+        </button>
+        <button id="nav-admin-tab" class="nav-tab" onclick="switchPortal('admin')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 15h.01M12 11h.01M12 7h.01M3 3h18v18H3z"/>
+          </svg>
+          Administrator Portal
+        </button>
+      </nav>
+
+      <div class="header-status">
+        <div class="status-pill status-pill-online" id="server-status-pill">
+          <span class="status-dot"></span>
+          <span id="server-status-text">Engine Ready</span>
+        </div>
+        <div class="user-badge" id="header-user-trust-badge" title="Your current user trust rating">
+          <span class="user-badge-label">Trust Score:</span>
+          <span class="user-badge-val" id="header-user-trust-val">1.00</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-main">
+    
+    <!-- ================================================================= -->
+    <!-- PORTAL 1: USER PORTAL -->
+    <!-- ================================================================= -->
+    <div id="user-portal" class="portal-view active">
+      
+      <!-- Sub Navigation Bar for User -->
+      <div class="sub-nav">
+        <button class="sub-nav-btn active" id="btn-subnav-simulate" onclick="switchUserTab('simulate')">
+          Simulation Studio
+        </button>
+        <button class="sub-nav-btn" id="btn-subnav-explore" onclick="switchUserTab('explore')">
+          Explore Compensation Data
+        </button>
+        <button class="sub-nav-btn" id="btn-subnav-profile" onclick="switchUserTab('profile')">
+          My Trust & History
+        </button>
+      </div>
+
+      <!-- Tab A: Simulation & Submission Studio -->
+      <section id="user-tab-simulate" class="tab-content active">
+        
+        <!-- Scenarios Bar -->
+        <div class="scenario-bar card">
+          <div class="scenario-bar-header">
+            <div>
+              <span class="tag-label">QUICK SIMULATION PRESETS</span>
+              <h2 class="section-title-sm">Test Common Edge Cases & Anomaly Patterns</h2>
+            </div>
+            <span class="text-muted text-sm">Select a scenario to auto-populate the form</span>
+          </div>
+          <div class="scenario-grid" id="scenarios-container">
+            <!-- Dynamically populated scenario cards -->
+            <div class="skeleton-pill">Loading presets...</div>
+          </div>
+        </div>
+
+        <!-- Submission Studio Grid -->
+        <div class="studio-grid">
+          
+          <!-- Left Column: Form -->
+          <div class="card form-card">
+            <div class="card-header">
+              <div class="card-header-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="card-title">Compensation Submission Form</h3>
+                <p class="card-desc">Simulate a crowdsourced salary entry into the validation pipeline</p>
+              </div>
+            </div>
+
+            <form id="submission-form" onsubmit="handleFormSubmit(event)">
+              <div class="form-section-title">Job & Company Information</div>
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label for="input-company" class="form-label">Company Name *</label>
+                  <input type="text" id="input-company" class="form-input" required placeholder="e.g. Google, Infosys, Meta">
+                </div>
+                <div class="form-group">
+                  <label for="input-jobFamily" class="form-label">Job Family *</label>
+                  <select id="input-jobFamily" class="form-select" required onchange="handleJobFamilyChange()">
+                    <option value="Software Engineer">Software Engineer</option>
+                    <option value="Product Manager">Product Manager</option>
+                    <option value="Data Scientist">Data Scientist</option>
+                    <option value="Data Analyst">Data Analyst</option>
+                    <option value="Data Engineer">Data Engineer</option>
+                    <option value="Machine Learning Engineer">Machine Learning Engineer</option>
+                    <option value="Technical Program Manager">Technical Program Manager</option>
+                    <option value="Product Designer">Product Designer</option>
+                    <option value="Engineering Manager">Engineering Manager</option>
+                    <option value="Business Analyst">Business Analyst</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row form-row-3">
+                <div class="form-group">
+                  <label for="input-level" class="form-label">Job Level / Ladder *</label>
+                  <input type="text" id="input-level" class="form-input" required placeholder="e.g. L3, L5, IC1, 62">
+                </div>
+                <div class="form-group">
+                  <label for="input-location" class="form-label">Location *</label>
+                  <input type="text" id="input-location" class="form-input" required placeholder="e.g. Mountain View, CA or Bengaluru, India">
+                </div>
+                <div class="form-group">
+                  <label for="input-workArrangement" class="form-label">Work Arrangement</label>
+                  <select id="input-workArrangement" class="form-select">
+                    <option value="hybrid">Hybrid</option>
+                    <option value="onsite">Onsite</option>
+                    <option value="remote">Remote</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-section-title">Compensation Breakdown</div>
+              <div class="form-row form-row-3">
+                <div class="form-group">
+                  <label for="input-baseSalary" class="form-label">Base Salary *</label>
+                  <input type="number" id="input-baseSalary" class="form-input" required placeholder="185000" min="0" oninput="calculateTotalCompensation()">
+                </div>
+                <div class="form-group">
+                  <label for="input-currency" class="form-label">Currency *</label>
+                  <select id="input-currency" class="form-select">
+                    <option value="USD">USD ($)</option>
+                    <option value="INR">INR (₹)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="CAD">CAD ($)</option>
+                    <option value="SGD">SGD ($)</option>
+                    <option value="AUD">AUD ($)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="input-totalCompensation" class="form-label">Total Compensation (TC) *</label>
+                  <input type="number" id="input-totalCompensation" class="form-input" required placeholder="320000" min="0">
+                </div>
+              </div>
+
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label for="input-stock" class="form-label">Annual Stock / Equity Value</label>
+                  <input type="number" id="input-stock" class="form-input" placeholder="100000" min="0" oninput="calculateTotalCompensation()">
+                </div>
+                <div class="form-group">
+                  <label for="input-bonus" class="form-label">Annual Bonus Value</label>
+                  <input type="number" id="input-bonus" class="form-input" placeholder="35000" min="0" oninput="calculateTotalCompensation()">
+                </div>
+              </div>
+
+              <div class="form-section-title">Experience & Career Tenure</div>
+              <div class="form-row form-row-3">
+                <div class="form-group">
+                  <label for="input-yoe" class="form-label">Total Experience (Years) *</label>
+                  <input type="number" id="input-yoe" class="form-input" required placeholder="7" min="0" max="60">
+                </div>
+                <div class="form-group">
+                  <label for="input-yac" class="form-label">Years at Company</label>
+                  <input type="number" id="input-yac" class="form-input" placeholder="3" min="0" max="60">
+                </div>
+                <div class="form-group">
+                  <label for="input-yal" class="form-label">Years at Level</label>
+                  <input type="number" id="input-yal" class="form-input" placeholder="1" min="0" max="60">
+                </div>
+              </div>
+
+              <!-- Network / Metadata Simulation (Collapsible) -->
+              <details class="metadata-details">
+                <summary class="metadata-summary">Advanced Actor & Network Metadata (Optional)</summary>
+                <div class="metadata-content">
+                  <div class="form-row form-row-3">
+                    <div class="form-group">
+                      <label for="input-userId" class="form-label">User ID</label>
+                      <input type="text" id="input-userId" class="form-input" placeholder="u_user123">
+                    </div>
+                    <div class="form-group">
+                      <label for="input-ipHash" class="form-label">IP Hash</label>
+                      <input type="text" id="input-ipHash" class="form-input" placeholder="46a93087f80e">
+                    </div>
+                    <div class="form-group">
+                      <label for="input-deviceHash" class="form-label">Device Hash</label>
+                      <input type="text" id="input-deviceHash" class="form-input" placeholder="57834122b210">
+                    </div>
+                  </div>
+                </div>
+              </details>
+
+              <div class="form-actions">
+                <button type="submit" id="btn-validate" class="btn btn-primary btn-lg">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="m9 12 2 2 4-4"/>
+                  </svg>
+                  Validate & Assess Quality
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                  Clear
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right Column: Validation Assessment Output -->
+          <div class="card result-card" id="assessment-result-card">
+            
+            <div id="result-empty-state" class="empty-state">
+              <div class="empty-state-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              </div>
+              <h3 class="empty-state-title">Awaiting Submission</h3>
+              <p class="empty-state-desc">Click a quick simulation preset above or fill in the form and press <strong>"Validate & Assess Quality"</strong> to inspect model decisions and trust scores.</p>
+            </div>
+
+            <div id="result-content" class="result-content" style="display: none;">
+              
+              <!-- Result Header: Badge & Score Dial -->
+              <div class="result-header">
+                <div>
+                  <span class="tag-label">AUTOMATED ASSESSMENT</span>
+                  <div class="decision-badge" id="res-decision-badge">APPROVE</div>
+                  <div class="submission-id-text" id="res-submission-id">ID: 666ffd78</div>
+                </div>
+                
+                <!-- Circular Trust Score Dial -->
+                <div class="score-dial-box">
+                  <div class="score-dial">
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                      <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                      <path id="res-score-circle" class="circle" stroke-dasharray="88, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    </svg>
+                    <div class="score-text">
+                      <span id="res-quality-score">88.5</span>
+                      <small>/ 100</small>
+                    </div>
+                  </div>
+                  <span class="score-label">Quality Score</span>
+                </div>
+              </div>
+
+              <!-- Multi-metric Cards -->
+              <div class="metrics-mini-grid">
+                <div class="mini-metric-card">
+                  <span class="mini-metric-title">CatBoost Anomaly Prob</span>
+                  <span class="mini-metric-val" id="res-p-anomaly">8.2%</span>
+                  <div class="mini-bar-bg"><div class="mini-bar-fill" id="res-bar-anomaly" style="width: 8%;"></div></div>
+                </div>
+                <div class="mini-metric-card">
+                  <span class="mini-metric-title">Rule Consistency</span>
+                  <span class="mini-metric-val" id="res-rule-score">100%</span>
+                  <div class="mini-bar-bg"><div class="mini-bar-fill mini-bar-green" id="res-bar-rule" style="width: 100%;"></div></div>
+                </div>
+                <div class="mini-metric-card">
+                  <span class="mini-metric-title">Confidence Level</span>
+                  <span class="mini-metric-val" id="res-conf-level">96.0%</span>
+                  <div class="mini-bar-bg"><div class="mini-bar-fill mini-bar-indigo" id="res-bar-conf" style="width: 96%;"></div></div>
+                </div>
+                <div class="mini-metric-card">
+                  <span class="mini-metric-title">User Trust Score</span>
+                  <span class="mini-metric-val" id="res-user-trust">1.00</span>
+                  <span class="mini-metric-sub" id="res-trust-delta">+0.03 Reward</span>
+                </div>
+              </div>
+
+              <!-- Peer Benchmark Comparison -->
+              <div class="benchmark-box">
+                <div class="benchmark-header">
+                  <h4 class="benchmark-title">Peer Group Compensation Benchmark</h4>
+                  <span class="benchmark-sub" id="res-peer-group-title">Google | Software Engineer | L5</span>
+                </div>
+                <div class="peer-bar-container">
+                  <div class="peer-markers">
+                    <span id="res-peer-low">$140k</span>
+                    <span id="res-peer-median" class="peer-marker-med">Peer Median: $185k</span>
+                    <span id="res-peer-high">$240k</span>
+                  </div>
+                  <div class="peer-track">
+                    <div class="peer-iqr-band" id="res-peer-band" style="left: 25%; width: 50%;"></div>
+                    <div class="peer-user-pin" id="res-peer-pin" style="left: 50%;" title="User submission value"></div>
+                  </div>
+                  <div class="peer-legend">
+                    <span>Peer Z-Score: <strong id="res-peer-z">0.00</strong></span>
+                    <span id="res-peer-diff-text">Within normal peer range</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actionable Explanations Box -->
+              <div class="explanation-box" id="res-explanation-box">
+                <h4 class="explanation-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                  Actionable Explanations & Flag Reasons
+                </h4>
+                <ul class="reasons-list" id="res-reasons-list">
+                  <!-- Reasons populated via JS -->
+                </ul>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="result-actions">
+                <button class="btn btn-outline btn-sm" onclick="openReportModal()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                  Report Issue / False Flag
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Tab B: Explore Compensation Data -->
+      <section id="user-tab-explore" class="tab-content">
+        <div class="card">
+          <div class="card-header flex-between">
+            <div>
+              <h2 class="card-title">Explore Verified Compensation Data</h2>
+              <p class="card-desc">Browse crowdsourced entries filtered and verified by CatBoost</p>
+            </div>
+            <div class="filter-controls">
+              <input type="text" id="explore-search" class="form-input form-input-sm" placeholder="Search company or role..." oninput="handleExploreSearch()">
+              <select id="explore-status-filter" class="form-select form-select-sm" onchange="handleExploreFilter()">
+                <option value="">All Decisions</option>
+                <option value="Approve">Approved (High Quality)</option>
+                <option value="Review">Review Recommended</option>
+                <option value="Reject">Problematic Anomalies</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Company</th>
+                  <th>Role & Level</th>
+                  <th>Location</th>
+                  <th>Base Salary</th>
+                  <th>Total Comp</th>
+                  <th>YoE</th>
+                  <th>Quality Score</th>
+                  <th>CatBoost Anomaly</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="explore-table-body">
+                <tr><td colspan="10" class="text-center">Loading submissions...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab C: User Profile & Trust History -->
+      <section id="user-tab-profile" class="tab-content">
+        <div class="profile-grid">
+          <div class="card">
+            <h2 class="card-title">User Trust Account</h2>
+            <p class="card-desc">Your platform credibility score based on submission quality</p>
+            
+            <div class="trust-display-box">
+              <div class="trust-score-hero" id="profile-trust-hero">1.00</div>
+              <div class="trust-status-badge badge-success">High Trust Contributor</div>
+              <p class="trust-expl-text">Submitting consistent, authentic compensation entries rewards you with a <strong>+3% trust score boost</strong>, while fabricated entries penalize your standing.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="card-title">My Recent Submissions</h2>
+            <p class="card-desc">Validation status of records submitted from this account</p>
+            
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Role</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Quality</th>
+                  </tr>
+                </thead>
+                <tbody id="profile-history-body">
+                  <tr><td colspan="5" class="text-center">No submissions yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- PORTAL 2: ADMINISTRATOR PORTAL -->
+    <!-- ================================================================= -->
+    <div id="admin-portal" class="portal-view">
+      
+      <!-- Admin Stats Banner -->
+      <div class="stats-banner-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Submissions</span>
+          <span class="stat-number" id="adm-stat-total">0</span>
+          <span class="stat-sub">Across all roles</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">High Quality Rate</span>
+          <span class="stat-number stat-green" id="adm-stat-approved">0%</span>
+          <span class="stat-sub">Approved automatically</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Review Queue</span>
+          <span class="stat-number stat-amber" id="adm-stat-review">0</span>
+          <span class="stat-sub">Pending moderator audit</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Flagged Anomalies</span>
+          <span class="stat-number stat-red" id="adm-stat-rejected">0</span>
+          <span class="stat-sub">Defective or fake submissions</span>
+        </div>
+      </div>
+
+      <!-- Moderation Queue -->
+      <div class="card mt-4">
+        <div class="card-header flex-between">
+          <div>
+            <h2 class="card-title">Moderator Review Queue</h2>
+            <p class="card-desc">Inspect, override decisions, and audit flagged crowdsourced submissions</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="loadAdminQueue()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            Refresh Queue
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Decision</th>
+                <th>Company</th>
+                <th>Role</th>
+                <th>Base Comp</th>
+                <th>Total Comp</th>
+                <th>Anomaly %</th>
+                <th>Flag Reasons</th>
+                <th>Audit Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-queue-body">
+              <tr><td colspan="8" class="text-center">Loading moderation queue...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- User Reports & Issue Tickets -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <h2 class="card-title">User Bug & Discrepancy Reports</h2>
+          <p class="card-desc">Feedback and reported data issues from community analysts</p>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Report ID</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="admin-reports-body">
+              <tr><td colspan="5" class="text-center">No reports filed.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Report Issue Modal -->
+  <div id="report-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Report Issue or Anomalous Entry</h3>
+        <button class="modal-close" onclick="closeReportModal()">&times;</button>
+      </div>
+      <form onsubmit="handleReportSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Report Category</label>
+          <select id="report-type" class="form-select" required>
+            <option value="False Positive">False Positive (Genuine submission flagged incorrectly)</option>
+            <option value="Undetected Anomaly">Undetected Anomaly (Fake submission passed through)</option>
+            <option value="Outdated Benchmark">Outdated Compensation Benchmark</option>
+            <option value="System Bug">System Bug or Calculation Error</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description / Evidence</label>
+          <textarea id="report-desc" class="form-textarea" rows="4" required placeholder="Explain why this data point or rule behavior is incorrect..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeReportModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Decision Override Modal -->
+  <div id="admin-override-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Moderator Decision Override</h3>
+        <button class="modal-close" onclick="closeOverrideModal()">&times;</button>
+      </div>
+      <div id="override-sub-details" class="override-details-box">
+        <!-- Details injected via JS -->
+      </div>
+      <form onsubmit="handleOverrideSubmit(event)">
+        <input type="hidden" id="override-sub-id">
+        <div class="form-group">
+          <label class="form-label">Set New Decision</label>
+          <select id="override-decision" class="form-select" required>
+            <option value="Approve">Approve (Mark as High Quality & Genuine)</option>
+            <option value="Review">Retain in Review Recommended</option>
+            <option value="Reject">Reject (Mark as Confirmed Anomaly / Fake)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Moderator Audit Comments</label>
+          <textarea id="override-comments" class="form-textarea" rows="3" required placeholder="State rationale for overriding automated decision..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeOverrideModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Decision & Audit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

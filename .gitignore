@@ -13,11 +13,8 @@ ENV/
 .ipynb_checkpoints
 
 # Project specific outputs and models
-models/lof_models/
-models/scalers/
-data/outputs/
-reports/plots/
-reports/statistics/
+models/*
+!models/.gitkeep
 
 # Ignored scratch and dump files
 nb_dump.txt
@@ -26,8 +23,8 @@ scratch_read_nb.py
 # Ignore large datasets
 *.csv
 *.json
-!test.json
-
+!sample.json
+*.jsonl
 # IDEs and Editors
 .vscode/
 .idea/
@@ -38,3 +35,4 @@ scratch_read_nb.py
 Docs/assgn5_112415109_SE.pdf
 Docs/SE_assgn7.pdf
 Docs/Levels_Crowdsourced-Data-Validation-System.pdf
+catboost_info

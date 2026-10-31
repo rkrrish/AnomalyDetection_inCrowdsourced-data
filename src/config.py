@@ -1,149 +1,109 @@
 # src/config.py
+"""Central Configuration for CatBoost Crowdsourced Data Validation System."""
 
 import os
 
 # ──────────────────────────────────────────────
-# Paths
+# Base Paths
 # ──────────────────────────────────────────────
-
-DATA_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "data", "raw", "compensation_dataset_1250_entries_labeled.json"
-
-)
-
-MODEL_SAVE_DIR = "models/"
-
-PLOT_DIR = "reports/plots/"
-OUTPUT_DIR = "data/outputs/"
-OUTPUT_PATH = "data/outputs/validated_output.csv"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_PATH = os.path.join(BASE_DIR, "data", "submissions.csv")
+MODELS_DIR = os.path.join(BASE_DIR, "models")
+MODEL_PATH = os.path.join(MODELS_DIR, "catboost_model.cbm")
+TRAIN_STATS_PATH = os.path.join(MODELS_DIR, "train_stats.json")
+PEER_STATS_PATH = os.path.join(MODELS_DIR, "peer_stats.json")
+MODEL_META_PATH = os.path.join(MODELS_DIR, "model_metadata.json")
+DB_PATH = os.path.join(BASE_DIR, "data", "system_database.json")
+OUTPUT_DIR = os.path.join(BASE_DIR, "data", "outputs")
 
 # ──────────────────────────────────────────────
-# Pipeline Parameters
+# Scoring & Decision Parameters
 # ──────────────────────────────────────────────
+DEFAULT_ANOMALY_THRESHOLD = 0.5072  # Calibrated on validation PR-AUC curve
+TRUST_SCORE_BOOST = 0.03            # +3% user trust boost on 'Approve' / high-quality submissions
+TRUST_SCORE_PENALTY_CRITICAL = 0.35 # Hard penalty for severe fake/impossible records
+TRUST_SCORE_PENALTY_WARNING = 0.15  # Soft penalty for suspicious inconsistencies
+INITIAL_USER_TRUST = 1.0            # Baseline trust for new accounts
 
-TEST_SIZE = 0.2
-RANDOM_STATE = 42
+# Scoring Weights for Final Submission Quality/Confidence Score (0-100)
+WEIGHT_RULE_CONSISTENCY = 0.35
+WEIGHT_ML_CONFIDENCE = 0.50
+WEIGHT_COMPLETENESS = 0.15
 
-MIN_SEGMENT_SIZE = 10
-KNN_MIN_SEGMENT_SIZE = 5
-LOF_N_NEIGHBORS = 5
-LOF_CONTAMINATION = 0.10
-CONSISTENCY_THRESHOLD = 0.50
-TRUST_SCORE_BOOST = 0.03
-
-# Weights for final consistency score (must sum to 1.0)
-WEIGHT_RULE = 0.30
-WEIGHT_LOF = 0.70
-
-# ──────────────────────────────────────────────
-# Columns to drop before processing
-# ──────────────────────────────────────────────
-
-DROP_COLUMNS = ["uuid", "_anomaly_type", "commentsAndRepliesCount", "threadId"]
+# Decision Thresholds
+DECISION_APPROVE_MIN_SCORE = 75.0
+DECISION_REJECT_MAX_SCORE = 45.0
 
 # ──────────────────────────────────────────────
-# LOF features — all must be numeric and USD-normalized
+# Required & Core Fields
 # ──────────────────────────────────────────────
-
-LOF_FEATURES = [
-    "log_base_salary",
-    "log_tc",
-    "avgAnnualBonusValue_USD",
-    "avgAnnualStockGrantValue_USD",
+REQUIRED_SUBMISSION_FIELDS = [
+    "company",
+    "jobFamily",
+    "level",
+    "location",
+    "baseSalary",
+    "totalCompensation",
     "yearsOfExperience",
-    "bonus_ratio",
-    "stock_ratio",
-    "tc_to_base",
+    "baseSalaryCurrency",
 ]
 
-# Segmentation keys for LOF
-SEGMENT_KEYS = ["jobFamily_clean", "region"]
-
-# ──────────────────────────────────────────────
-# Level ordinal mapping (IC + Manager tracks)
-# ──────────────────────────────────────────────
-
-LEVEL_ORDINAL = {
-    # IC track
-    "l1": 1, "l2": 2, "l3": 3, "l4": 4, "l5": 5, "l6": 6, "l7": 7,
-    "ic1": 1, "ic2": 2, "ic3": 3, "ic4": 4, "ic5": 5, "ic6": 6,
-    "e1": 1, "e2": 2, "e3": 3, "e4": 4, "e5": 5, "e6": 6, "e7": 7,
-    "junior": 1, "mid": 2, "mid-level": 2, "senior": 3,
-    "staff": 4, "principal": 5, "fellow": 6, "distinguished": 7,
-    "swe i": 1, "swe ii": 2, "senior swe": 3, "staff swe": 4,
-    # Manager track
-    "m1": 1, "m2": 2, "m3": 3, "m4": 4, "m5": 5,
-    "manager": 1, "senior manager": 2, "director": 3,
-    "senior director": 4, "vp": 5, "svp": 6, "evp": 7, "cto": 8,
-    "partner": 3,
+VALID_CURRENCY_CODES = {
+    "INR", "USD", "EUR", "GBP", "CAD", "SGD", "AUD", "PLN", "SEK", "CHF", "BRL", "AED",
+    "JPY", "CNY", "NZD", "HKD", "KRW", "MXN", "ZAR", "NOK", "DKK", "CZK", "HUF", "ILS",
+    "THB", "IDR", "MYR", "PHP", "TWD", "TRY"
 }
 
-# ──────────────────────────────────────────────
-# Country → Region mapping
-# ──────────────────────────────────────────────
-
-COUNTRY_REGION = {
-    1: "US", 113: "India", 826: "UK", 276: "Germany",
-    250: "France", 380: "Italy", 724: "Spain", 124: "Canada",
-    36: "Australia", 392: "Japan", 156: "China", 76: "Brazil",
+CURRENCY_ALIASES = {
+    "INRR": "INR", "RS": "INR", "RS.": "INR", "RUPEE": "INR", "RUPEES": "INR",
+    "US$": "USD", "US DOLLAR": "USD", "EURO": "EUR"
 }
 
-# ──────────────────────────────────────────────
-# Company classification
-# ──────────────────────────────────────────────
-
-FAANG = {"google", "meta", "amazon", "apple", "microsoft", "netflix"}
-
-TIER2 = {
-    "oracle", "salesforce", "servicenow", "snowflake", "adobe", "nvidia",
-    "uber", "lyft", "airbnb", "stripe", "linkedin", "twitter", "x",
-    "databricks", "confluent", "figma", "notion", "openai", "anthropic",
+WORK_ARRANGEMENT_ALIASES = {
+    "hybrid": "hybrid", "onsite": "onsite", "on-site": "onsite", "on site": "onsite",
+    "office": "onsite", "in-office": "onsite", "in office": "onsite",
+    "remote": "remote", "remoteee": "remote", "wfh": "remote",
+    "work from home": "remote", "work-from-home": "remote", "fully remote": "remote",
 }
+EXPECTED_WORK_ARRANGEMENTS = {"hybrid", "onsite", "remote"}
 
+# ──────────────────────────────────────────────
+# Public Companies & Organizations
+# ──────────────────────────────────────────────
 PUBLIC_COMPANIES = {
-    "oracle", "microsoft", "google", "amazon", "apple", "meta", "netflix",
-    "salesforce", "servicenow", "snowflake", "adobe", "ibm", "intel",
-    "deere & company", "cigna", "hca healthcare", "jpmorgan", "goldman sachs",
-    "morgan stanley", "bank of america", "wells fargo", "visa", "mastercard",
-    "unitedhealth", "cvs", "walmart", "target", "boeing", "lockheed martin",
-    "accenture", "infosys", "wipro", "tcs", "capgemini",
+    "google", "meta", "amazon", "apple", "microsoft", "netflix",
+    "oracle", "salesforce", "servicenow", "snowflake", "adobe", "ibm", "intel",
+    "uber", "lyft", "airbnb", "stripe", "linkedin", "twitter", "x",
+    "jpmorgan", "goldman sachs", "morgan stanley", "bank of america", "wells fargo",
+    "visa", "mastercard", "unitedhealth", "walmart", "target", "boeing",
+    "accenture", "infosys", "wipro", "tcs", "capgemini", "cognizant", "hcl",
+    "tech mahindra", "genpact", "ltimindtree", "paypal", "swiggy"
 }
 
-STARTUP_STAGES = {"seed", "series a", "series b", "series c", "series d"}
+STARTUP_STAGES = {"seed", "series a", "series b", "series c", "series d", "early stage"}
 
 # ──────────────────────────────────────────────
-# Salary benchmarks by (jobFamily, level_group, region)
+# Rule Columns used in Validation & Scoring
 # ──────────────────────────────────────────────
-
-BENCHMARKS = {
-    ("Software Engineer", "junior", "US"): {"min": 90000, "max": 220000},
-    ("Software Engineer", "senior", "US"): {"min": 180000, "max": 500000},
-}
-
-# ──────────────────────────────────────────────
-# Company size mapping
-# ──────────────────────────────────────────────
-
-COMPANY_SIZE_MAP = {
-    "1-10": 5, "11-50": 30, "51-200": 125, "201-500": 350,
-    "501-1000": 750, "1001-5000": 3000, "5000+": 10000,
-}
-
-# ──────────────────────────────────────────────
-# Rule columns used for scoring
-# ──────────────────────────────────────────────
-
 RULE_COLUMNS = [
+    "flag_missing_required",
     "flag_gibberish_company",
+    "flag_zero_or_negative_base",
+    "flag_tc_less_than_base",
+    "flag_tc_arithmetic_mismatch",
+    "flag_ftc_arithmetic_mismatch",
     "flag_yal_gt_yac",
     "flag_yac_gt_yoe",
     "flag_negative_experience",
-    "flag_zero_or_negative_base",
-    "flag_tc_less_than_base",
+    "flag_yoe_out_of_range",
     "flag_junior_level_high_yoe",
+    "flag_offer_after_submit",
+    "flag_offer_same_time_of_day",
+    "flag_company_name_mismatch",
+    "flag_currency_country_mismatch",
+    "flag_vest_pct_not_100",
+    "flag_vest_malformed",
     "flag_bonus_pct_mismatch",
-    "flag_public_co_startup_stage",
-    "flag_tc_arithmetic_mismatch",
-    "flag_companysize_mismatch",
+    "flag_duplicate",
+    "flag_burst_submission",
 ]

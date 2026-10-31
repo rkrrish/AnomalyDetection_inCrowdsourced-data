@@ -1,6 +1,21 @@
-pandas
-numpy
-scikit-learn
-matplotlib
-seaborn
-joblib
+# Core data & numerical
+pandas>=2.0
+numpy>=1.24
+scipy>=1.10
+
+# Machine learning
+scikit-learn>=1.2
+catboost>=1.2
+optuna>=4.0
+category-encoders>=2.6
+
+# Deep learning & dimensionality reduction
+tensorflow>=2.13
+umap-learn>=0.5
+
+# Visualization
+matplotlib>=3.7
+seaborn>=0.13
+
+# Utilities
+joblib>=1.2
